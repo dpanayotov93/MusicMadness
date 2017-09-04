@@ -2,7 +2,8 @@
 var $ = document.querySelector.bind(document),
     $$ = document.querySelectorAll.bind(document),
     keys= {},
-    canvas, ctx, player, level;
+    canvas, ctx, player, level,
+    time;
 
 window.onload = function() {
     // Setting global variables
@@ -95,10 +96,11 @@ function updateGUI() {
 function animate() {
     requestAnimationFrame(animate);
     // console.log('--UPDATED--');
-    player.checkControls();
-    if(player.position.y === player.spawnPoint.y && !keys[87]) {
-        player.isJumping = false;
-    }
+    var now = new Date().getTime(),
+        dt = now - (time || now);   
+        
+    time = now;      
+    player.checkControls(dt);
 }
 
 function onKeyDown(e) {
@@ -126,7 +128,9 @@ var Player = function() {
     this.speed = 10;
     this.gravity = 250;
     this.isJumping = false;
-    this.jumpHeight = 300;
+    this.jumpHeight = 20;
+    this.jumpDist = 20;
+    this.segment = 0;
     this.spriteURL = {
         right: 'assets/player-right.png',
         left: 'assets/player-left.png'
@@ -137,62 +141,156 @@ var Player = function() {
         x: 0,
         y: 0
     }
+    this.dir = 0; // 0 = Right, 1 = Left
 
     this.draw = function(position) {
+        var curSegment, segmentY;
+        
+        if(position && position.x) player.position.x = position.x;
+        
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas from the text
-        ctx.drawImage(this.sprite, position.x, position.y, this.width, this.height);
-        this.position.x = position.x;
-        this.position.y = position.y;
+        
+        if(player.dir === 0) {
+            curSegment = Math.floor((player.position.x + 80) / level.floor.segmentWidth); // Fix that 80
+        } else if(player.dir === 1) {
+            curSegment = Math.floor((player.position.x - 80) / level.floor.segmentWidth); // Fix that 80
+        }
+        
+        player.segment = curSegment;
+
+        if(position && position.y)  {
+            player.position.y = position.y;
+        } else {
+            segmentY = canvas.height - level.floor.height + 10 * player.segment - player.height + 7.5; // 7.5 - clipping fix
+            player.position.y = segmentY;            
+        }
+        
+        // console.log(this.position.x, this.position.y);
+        
+        ctx.drawImage(player.sprite, player.position.x, player.position.y, player.width, player.height);
         
         level.floor.draw(); // Draw the floor
-        updateGUI(); // Draw the GUI                   
+        updateGUI(); // Draw the GUI          
     }
     
-    this.checkControls = function() {
-        if(keys[65]) this.moveLeft(); // A - Move Left
-        if(keys[68]) this.moveRight(); // D - Move Right
-        if(!this.isJumping) {
-            if(keys[87]) this.jump(); // W - Jump
+    this.checkControls = function(dt) {
+        if(!player.isJumping) {
+            if(keys[65]) this.moveLeft(); // A - Move Left
+            if(keys[68]) this.moveRight(); // D - Move Right
+            if(keys[87]) this.jump(dt); // W - Jump
         }
+        if(keys[32]) this.shoot(dt); // Space - Shoot
     }
     
     this.moveLeft = function() {
-        console.log('moving left');
+        var segmentY = canvas.height - level.floor.height + 10 * player.segment - player.height + 7.5; // 7.5 - clipping fix
         var movePosition = {
-            x: this.position.x - this.speed ,
-            y: this.position.y
+            x: this.position.x - this.speed
         }
         if(movePosition.x < -20*this.speed) movePosition.x = canvas.width - this.speed;
         this.draw(movePosition);
     }
     
     this.moveRight = function() {
-        console.log('moving right');
+        var segmentY = canvas.height - level.floor.height + 10 * player.segment - player.height + 7.5; // 7.5 - clipping fix
         var movePosition = {
-            x: this.position.x + this.speed ,
-            y: this.position.y
+            x: this.position.x + this.speed
         }
         if(movePosition.x > canvas.width) movePosition.x = this.speed;
         this.draw(movePosition);
     }
     
-    this.jump = function() {
-        if(!this.isJumping) {
-            this.isJumping = true;
-            
-            var movePosition = {
-                x: this.position.x,
-                y: this.position.y - this.jumpHeight
+    this.jump = function(dt) {
+        var jumpIteration = dt * 5,
+            deltaX;
+        if(!player.isJumping) {
+            player.isJumping = true;
+
+            if(keys[65]) { // Left Jump
+                deltaX = player.speed * player.jumpDist;
+            } else if(keys[68]) { // Right Jump
+                deltaX = -player.speed * player.jumpDist;
+            } else { // Normal Jump
+                deltaX = 0;
             }
-            this.draw(movePosition);
+            
+            var jumpAnimation = new Promise(function(resolve, reject) {
+                for(var i = 0; i < jumpIteration; i += 1) {
+                    (function(i){
+                        setTimeout(function() {
+                            var movePosition = {
+                                x: player.position.x - deltaX / jumpIteration,
+                                y: player.position.y - (player.jumpHeight * dt / jumpIteration)
+                            };
+                            player.draw(movePosition);
+                            if(i === jumpIteration - 1) {
+                                resolve();
+                            }
+                        }, dt);
+                    }(i));
+                }
+            });
+            
+            jumpAnimation.then(function() {
+                var gravity = new Promise(function(resolve, reject) {
+                    var segmentY = canvas.height - level.floor.height + 10 * player.segment - player.height, // 7.5 - clipping fix
+                        deltaY = (segmentY - player.position.y);
+                    for(var i = 0; i < jumpIteration; i += 1) {
+                        (function(i){                    
+                            setTimeout(function() {
+                                var movePosition = {
+                                        x: player.position.x - deltaX / jumpIteration,
+                                        y: player.position.y + deltaY / jumpIteration
+                                    };
+                                
+                                player.draw(movePosition);
+                                if(i === jumpIteration - 1) {
+                                    resolve();
+                                }
+                            }, dt)
+                        }(i));
+                    }
+                });
+                
+                gravity.then(function() {
+                    setTimeout(function() {
+                        player.isJumping = false;
+                    }, dt);
+                });
+            });
+         }
+    }
+    
+    this.shoot = function(dt) {
+        if(player.curAmmo > 0) {
+            player.curAmmo -= 1;
+            var spawn = {
+                x: this.position.x + this.width,
+                y: this.position.y + this.height / 2
+            }
+            ctx.strokeStyle = testColors[this.segment];
+            ctx.beginPath();
+            ctx.moveTo(spawn.x, spawn.y);
+            ctx.lineTo(spawn.x + 25, spawn.y + 25);
+            ctx.lineTo(spawn.x + 50, spawn.y);
+            ctx.lineTo(spawn.x + 75, spawn.y);
+            ctx.lineTo(spawn.x + 100, spawn.y - 50);
+            ctx.lineTo(spawn.x + 125, spawn.y + 50);
+            ctx.lineTo(spawn.x + 150, spawn.y);
+            ctx.lineTo(spawn.x + 175, spawn.y);
+            ctx.lineTo(spawn.x + 200, spawn.y - 25);
+            ctx.lineTo(spawn.x + 225, spawn.y);
+            ctx.lineTo(spawn.x + 300, spawn.y);
+            ctx.stroke();
             
             setTimeout(function() {
-                var movePosition = {
-                    x: player.position.x,
-                    y: player.spawnPoint.y
+                if(!player.isJumping) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas from the text
+                    ctx.drawImage(player.sprite, player.position.x, player.position.y, player.width, player.height);
+                    level.floor.draw(); // Draw the floor
+                    updateGUI(); // Draw the GUI    
                 }
-                player.draw(movePosition);
-            }, 100)
+            }, dt);
         }
     }
 }
@@ -216,20 +314,20 @@ var Level = function() {
         window.addEventListener('keydown', onKeyDown, false);
         window.addEventListener('keyup', onKeyUp, false);
         
-        animate(); // Start the update cycle
+        requestAnimationFrame(animate); // Start the update cycle
     };
     
     this.floor = {
         width: canvas.width,
         height: 250,
-        segmentWidth: canvas.width / 8,
-        segmentsN: canvas.width / 240, // TODO: Change num to segmentWidth prop
+        segmentWidth: canvas.width / 8, // TODO: Change the constant based on the segmentsN
+        segmentsN: 8, // TODO: Get from segmentWidth instead a constant
         startX: 0,
         startY: canvas.height - 250, // TODO: Change num to height prop
         color: '#333333',
         draw: function() { // TODO: Pass bar levels array from detected audio beats and adjust the height of the bars according to them
             ctx.fillStyle = level.floor.color; // Set the base floor color
-            ctx.fillRect(level.floor.startX, level.floor.startY, level.floor.width, level.floor.height); // Set the size and position of the floor
+            // ctx.fillRect(level.floor.startX, level.floor.startY, level.floor.width, level.floor.height); // Set the size and position of the floor
             for(var i = 0; i < level.floor.segmentsN; i += 1) {
                 ctx.fillStyle = testColors[i]; // Set the current bar color
                 ctx.fillRect(level.floor.startX + level.floor.segmentWidth*i, level.floor.startY + 10*i, level.floor.segmentWidth, level.floor.height + 10*i); // Set the size and position of the current bar
