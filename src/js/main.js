@@ -93,14 +93,14 @@ function updateGUI() {
     ctx.fillText("Ammo: " + player.curAmmo + "/" + player.maxAmmo, canvas.width / 2, 50);
 }
 
-function animate() {
+function animate(frameTime) {
+    var now, dt;
     requestAnimationFrame(animate);
-    // console.log('--UPDATED--');
-    var now = new Date().getTime(),
-        dt = now - (time || now);   
-        
+    now = new Date().getTime();
+    dt = now - (time || now);   
     time = now;      
     player.checkControls(dt);
+    player.recharge(frameTime);
 }
 
 function onKeyDown(e) {
@@ -142,6 +142,8 @@ var Player = function() {
         y: 0
     }
     this.dir = 0; // 0 = Right, 1 = Left
+    this.recharging = false;
+    this.overheat = false;
 
     this.draw = function(position) {
         var curSegment, segmentY;
@@ -165,12 +167,13 @@ var Player = function() {
             player.position.y = segmentY;            
         }
         
-        // console.log(this.position.x, this.position.y);
-        
+        this.render();
+    }
+    
+    this.render = function() {
         ctx.drawImage(player.sprite, player.position.x, player.position.y, player.width, player.height);
-        
         level.floor.draw(); // Draw the floor
-        updateGUI(); // Draw the GUI          
+        updateGUI(); // Draw the GUI           
     }
     
     this.checkControls = function(dt) {
@@ -286,12 +289,27 @@ var Player = function() {
             setTimeout(function() {
                 if(!player.isJumping) {
                     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas from the text
-                    ctx.drawImage(player.sprite, player.position.x, player.position.y, player.width, player.height);
-                    level.floor.draw(); // Draw the floor
-                    updateGUI(); // Draw the GUI    
+                    player.render();
                 }
             }, dt);
         }
+    }
+    
+    this.recharge = function(frameTime) {
+        if(this.curAmmo === 0 && !this.overheat) {
+            this.overheat = true;
+            setTimeout(function() {
+                player.curAmmo += 1;
+                player.overheat = false;
+            }, 2000);                
+        }        
+        if(this.curAmmo < 100 && !this.overheat) {    
+            if(frameTime % 100 < 35) {
+                this.curAmmo += 1;
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas from the text
+                player.render();          
+            }
+        }  
     }
 }
 
