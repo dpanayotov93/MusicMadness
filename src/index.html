@@ -6,11 +6,24 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>MusicMadness</title>
     
-    <link rel="stylesheet" href="css/master.css" type="text/css" />
+    <!--Fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Economica|Iceland" rel="stylesheet">
+    
+    <!--Styles-->
+    <link rel="stylesheet" href="css/master.css" type="text/css"/>
 </head>
-<body>
-    <canvas id="mm-canvas">Your browser doesn't support canvas</canvas>
+<body onload="entry()">
+    <canvas id="mm-canvas" width="1920" height="1080">Your browser doesn't support canvas</canvas>
+    <div id="gui">
+        <div id="health-max-player"><span id="health-player"></span></div>
+        <div id="fuel-max-player"><span id="fuel-player"></span></div>
+    </div>
 
-    <script type="text/javascript" src="js/main.js"></script>
+    <!--Scripts-->
+    <script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
+    
+    <script type="text/javascript" src="js/entry.js"></script>
+    <script type="text/javascript" src="js/player.js"></script>
+    <script type="text/javascript" src="js/audio.js"></script>
 </body>
 </html>

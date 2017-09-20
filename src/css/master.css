@@ -2,6 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* Remove mobile highlight */
 }
 body {
     width: 100%;
@@ -13,6 +14,46 @@ body {
 }
 
 canvas#mm-canvas {
-    display: none;
+    border: 1px solid #ccc;
+    cursor: url(../assets/crosshair.png), default;
 }
 
+#gui, #gui * {
+    pointer-events: none;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#gui {
+    display: none;
+    top: 0;
+    position: absolute;
+    width: 35%;
+    color: #ffffff;
+    font-size: 2rem;
+    text-align: left;
+    padding: 1rem;
+}
+
+    #gui div {
+        width: 100%;
+        height: 1.5rem;
+        background: grey;
+        border: 1px black 
+    }
+    
+    #gui div span {
+        height: inherit;
+        display: block;
+        width: 100%;
+    }    
+    
+    #gui div span#health-player {
+        background: red;
+    }
+    
+    #gui div span#fuel-player {
+        background: yellow;
+    }
+    

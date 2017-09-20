@@ -2,7 +2,7 @@
 var $ = document.querySelector.bind(document),
     $$ = document.querySelectorAll.bind(document),
     keys= {},
-    canvas, ctx, player, level,
+    canvas, ctx, player, background, level,
     time;
 
 window.onload = function() {
@@ -80,7 +80,12 @@ function init() {
         player.sprite.src = player.spriteURL.right; // Add sprite
         player.sprite.onload = function() {
             level = new Level(); // Create level
-            level.init();
+            background = new Image();
+            background.src = "assets/background-min.jpg";
+            background.onload = function() {
+                ctx.drawImage(background, 0, 0, canvas.width, canvas.height);            
+                level.init();
+            }
         };
     }
 }
@@ -96,6 +101,7 @@ function updateGUI() {
 function animate(frameTime) {
     var now, dt;
     requestAnimationFrame(animate);
+    
     now = new Date().getTime();
     dt = now - (time || now);   
     time = now;      
@@ -125,11 +131,11 @@ var Player = function() {
     this.curHealth = 100;
     this.maxAmmo = 100;
     this.curAmmo = 100;
-    this.speed = 10;
+    this.speed = 20;
     this.gravity = 250;
     this.isJumping = false;
-    this.jumpHeight = 20;
-    this.jumpDist = 20;
+    this.jumpHeight = 10;
+    this.jumpDist = 10;
     this.segment = 0;
     this.spriteURL = {
         right: 'assets/player-right.png',
@@ -171,6 +177,11 @@ var Player = function() {
     }
     
     this.render = function() {
+        // ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = 0.1;
+        ctx.fillStyle = testColors[this.segment];
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        ctx.globalAlpha = 1.0;
         ctx.drawImage(player.sprite, player.position.x, player.position.y, player.width, player.height);
         level.floor.draw(); // Draw the floor
         updateGUI(); // Draw the GUI           
@@ -204,7 +215,7 @@ var Player = function() {
     }
     
     this.jump = function(dt) {
-        var jumpIteration = dt * 5,
+        var jumpIteration = dt,
             deltaX;
         if(!player.isJumping) {
             player.isJumping = true;
