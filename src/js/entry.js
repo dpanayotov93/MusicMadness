@@ -39,9 +39,7 @@ function entry() {
     // Set the manifest with all the resources and the preloader
     manifest = [
         {src:"assets/background.jpg", id:"bg"},
-        {src:"assets/bullet01.png", id:"bullet_spritesheet"}
-        // {src:"assets/player-left.png", id:"player-left"},
-        // {src:"assets/player-right.png", id:"player-right"}
+        {src:"assets/bullet02.png", id:"bullet_spritesheet"}
     ];
     preloader = new createjs.LoadQueue();
     preloader.installPlugin(createjs.Sound);
@@ -107,7 +105,7 @@ function handleFileLoad(event) {
 
 function handleLoadComplete(event) {
    totalLoaded += 1;
-   console.log('Assets loaded:', totalLoaded, '/', manifest.length);
+   console.log('Assets loaded:', totalLoaded, '/', manifest.length, event);
    if(manifest.length === totalLoaded) addTitleView();
 }
 
