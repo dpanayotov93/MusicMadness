@@ -5,8 +5,8 @@ function createPlayer() {
     player.grounded = false;
     player.speed = 20;
     player.fuel = 100;
-    player.color = {r: 255, g: 255, b: 255, a: 1},
-    player.blurNormal = {x: 5, y: 5, q: 10},
+    player.color = {r: 255, g: 255, b: 255, a: 1};
+    player.blurNormal = {x: 5, y: 5, q: 10};
     player.bar = 0;
     player.keys = {};
     player.gui = {
@@ -37,7 +37,6 @@ function createPlayer() {
             blur = {x: 15, y: 15, q: 10};
         
         this.isJumping = true; // Set to jumping state
-        //this.model.graphics.clear().beginFill("red").drawRect(0, 0, barW / 2, barW / 2).endFill(); // Change color
         
         player.dye({r: 255, g: 255, b: 255, a: 1});      
         
@@ -48,6 +47,11 @@ function createPlayer() {
         if(this.fuel < 0) this.fuel = 0; 
         player.gui.fuel.style.width = this.fuel + '%';
     };
+    
+    player.shoot = function() {
+        var bullet = new Bullet();
+        bullet.shoot();
+    }   
     
     player.blur = function(blur) {
         var blurFilter = new createjs.BlurFilter(blur.x, blur.y, blur.q),
@@ -88,7 +92,38 @@ function createPlayer() {
     window.addEventListener('keyup', keyup);
     window.addEventListener('keydown', keydown);
     window.addEventListener('mousemove', mousemove);
-    // window.addEventListener('click', player.shoot);
+    
+    var mouseHold;
+    document.querySelector('#move-left-player').addEventListener('mousedown', function() {
+        mouseHold = setInterval(function() {
+            player.move('L');    
+        }, 30);
+    });
+    document.querySelector('#move-left-player').addEventListener('mouseup', function() {
+        clearInterval(mouseHold);
+    });    
+    document.querySelector('#move-right-player').addEventListener('mousedown', function() {
+        mouseHold = setInterval(function() {
+            player.move('R');    
+        }, 30);
+    });
+    document.querySelector('#move-right-player').addEventListener('mouseup', function() {
+        clearInterval(mouseHold);
+    }); 
+    document.querySelector('#jump-player').addEventListener('mousedown', function() {
+        mouseHold = setInterval(function() {
+            if(player.fuel > 0) {
+                isHoldingJump = true;
+                player.jump();
+            } else {
+                player.isJumping = false;
+            }
+        }, 30);
+    });
+    document.querySelector('#jump-player').addEventListener('mouseup', function() {
+        isHoldingJump = false;
+        clearInterval(mouseHold);
+    });  
 }
 
 function updatePlayer() {
@@ -108,7 +143,7 @@ function updatePlayer() {
         player.bar = parseInt(player.model.x / barW);
         
         // Check if no longer jumping
-        if(!player.keys[32]) player.isJumping = false;
+        if(!player.keys[32] && !isHoldingJump) player.isJumping = false;
 
         // Party time!
         if(!player.isJumping) {
@@ -175,5 +210,5 @@ function keyup(e) {
 function mousemove(e) {
     var canvasBBox = canvas.getBoundingClientRect();
     player.mouse.x = e.clientX - canvasBBox.left;
-    player.mouse.y = e.clientY - canvasBBox.top;  
+    player.mouse.y = e.clientY - canvasBBox.top;
 }

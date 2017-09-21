@@ -21,6 +21,8 @@ var canvas, stage, // The canvas and stage objects
     // [TIMING]
     lastTime, curTime,
     // [OTHER]
+    particles = [],
+    isHoldingJump = false,
     isGameStarted = false,
     loading;
 
@@ -37,6 +39,7 @@ function entry() {
     // Set the manifest with all the resources and the preloader
     manifest = [
         {src:"assets/background.jpg", id:"bg"},
+        {src:"assets/bullet01.png", id:"bullet_spritesheet"}
         // {src:"assets/player-left.png", id:"player-left"},
         // {src:"assets/player-right.png", id:"player-right"}
     ];
@@ -216,8 +219,12 @@ function showLoadingBar() {
 
 function handleTick() {
     stage.update();
+    drawParticles();
+
     if(audioPlaying) {
-        updatePlayer();
+        updatePlayer();      
+        window.addEventListener('click', player.shoot);
+        window.addEventListener('touch', player.shoot);
     }
 }
 

@@ -36,7 +36,7 @@ canvas#mm-canvas {
     padding: 1rem;
 }
 
-    #gui div {
+    #gui div:not(#controls) {
         width: 100%;
         height: 1.5rem;
         background: grey;
@@ -57,3 +57,28 @@ canvas#mm-canvas {
         background: yellow;
     }
     
+    #gui #controls {
+        bottom: 0;
+        left: 0;
+        position: fixed;
+        padding: 0.5rem;        
+        width: 100%;
+    }
+    
+        #gui #controls button {
+            pointer-events: all;
+            width: 10rem;
+            height: 3.5rem;
+            background: #00d5e1;
+            border: 0.125rem solid #333;  
+            font-weight: 600;
+            font-size: 2rem;
+            font-family: Iceland;   
+            cursor: pointer;
+        }
+        
+        #gui #controls button#jump-player {
+            position: absolute;
+            right: 1.5rem;
+            background: chartreuse;
+        }
