@@ -39,7 +39,7 @@ function entry() {
     // Set the manifest with all the resources and the preloader
     manifest = [
         {src:"assets/background.jpg", id:"bg"},
-        {src:"assets/bullet02.png", id:"bullet_spritesheet"}
+        {src:"assets/bullet03.png", id:"bullet_spritesheet"}
     ];
     preloader = new createjs.LoadQueue();
     preloader.installPlugin(createjs.Sound);
