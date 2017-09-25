@@ -8,6 +8,7 @@ function createPlayer() {
     player.color = {r: 255, g: 255, b: 255, a: 1};
     player.blurNormal = {x: 5, y: 5, q: 10};
     player.bar = 0;
+    player.level = 0;
     player.keys = {};
     player.gui = {
         container: document.querySelector('#gui'),

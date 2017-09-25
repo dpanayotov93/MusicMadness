@@ -16,7 +16,7 @@ var audioContext,
     amplitudeArray, // array to hold time domain dat    
     audioUrl;    
     
-audioUrl = "/src/assets/Droplex-Killa_Kokain.mp3";    
+audioUrl = "/src/assets/Noisia-Incessant.mp3";    
 
 function playMusic() {
     try {
@@ -39,6 +39,7 @@ function playMusic() {
         var dataArray = new Uint8Array(bufferLength);        
         // Get the Time Domain data for this sample
         analyserNode.getByteTimeDomainData(dataArray);
+        // analyserNode.getByteFrequencyData(dataArray);
         // Draw the display if the audio is playing
         if (audioPlaying == true) {
             animateBars(dataArray);
@@ -54,8 +55,8 @@ function playMusic() {
 }
 
 function setupAudioNodes() {
-    sourceNode     = audioContext.createBufferSource();
-    analyserNode   = audioContext.createAnalyser();
+    sourceNode = audioContext.createBufferSource();
+    analyserNode = audioContext.createAnalyser();
     javascriptNode = audioContext.createScriptProcessor(sampleSize, 1, 1);
     // Create the array for the data values
     amplitudeArray = new Uint8Array(analyserNode.frequencyBinCount);
@@ -76,6 +77,8 @@ function loadSound(url) {
         audioContext.decodeAudioData(request.response, function (buffer) {
             audioData = buffer;
             playSound(audioData);
+            player.level += 1;
+            document.querySelector('#level').innerHTML = player.level;
         }, onError);
     }
     request.send();
