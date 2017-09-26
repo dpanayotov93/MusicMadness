@@ -33,8 +33,8 @@ function entry() {
     stage.mouseEventsEnabled = true;
     stage.enableMouseOver(60);
     
-    resize();
-    window.addEventListener('resize', resize);    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);    
     
     // Set the manifest with all the resources and the preloader
     manifest = [
@@ -54,28 +54,24 @@ function entry() {
     createjs.Ticker.setFPS(30);
     createjs.Ticker.addEventListener("tick", handleTick);
 }
+function resizeCanvas() {
+    var canvasRatio = stage.canvas.height / stage.canvas.width;
 
-function resize() {
-    // Simple "fit-to-screen" scaling
-    var w = window.innerWidth,
-        h = window.innerHeight,
-        contentWidth = 1920,
-        contentHeight = 1080
-        ratio = contentWidth / contentHeight, // Use the "default" size of the content you have.
-        windowRatio = w/h,
-        scale = w/contentWidth;
-    if (windowRatio > ratio) {
-        scale = h/contentHeight;
+    var windowRatio = window.innerHeight / window.innerWidth;
+    var width;
+    var height;
+
+    if (windowRatio < canvasRatio) {
+        height = window.innerHeight - 35;
+        width = height / canvasRatio;
+    } else {
+        width = window.innerWidth;
+        height = width * canvasRatio;
     }
-    canvas.width = w;
-    canvas.height = h;      
-    
-    // stage.scaleX = scale;
-    // stage.scaleY = scale;    
-    for(var i = 0; i < stage.children.length; i += 1) {
-        stage.children[i].scaleX = scale;
-        stage.children[i].scaleY = scale;
-    }
+
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px'; 
+    stage.update();
 }
 
 function handleProgress(event) {
